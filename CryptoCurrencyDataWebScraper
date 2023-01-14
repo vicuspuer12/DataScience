@@ -1,0 +1,33 @@
+# Importing Python Libraries
+
+from bs4 import BeautifulSoup
+import requests
+import pandas as pd
+import time
+import datetime
+import smtplib
+
+# Connect and pull data from website
+def load_data():
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36", "Accept-Encoding":"gzip, deflate", "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "DNT":"1","Connection":"close", "Upgrade-Insecure-Requests":"1"}
+
+    URL = "https://www.coingecko.com/"
+
+    tables = []
+
+    for i in range(1, 120):
+        print('Processing Page {0}'.format(i))
+        params = {
+            'page': i
+        }
+        page = requests.get(URL, headers=headers, params=params)
+
+        BS = BeautifulSoup(page.content, 'html.parser')
+        tables.append(pd.read_html(str(BS))[0])
+
+    MS = pd.concat(tables)
+    MS = MS.loc[:, MS.columns[1:-1]]
+    MS.to_csv('CryptoData.csv', index=False)
+while(True):
+    load_data()
+    time.sleep(60)
